@@ -18,8 +18,6 @@ class GeneListSpider(scrapy.Spider):
             item = GeneItem()
             name = sel.xpath('a/text()').extract()
             link = sel.xpath('a/@href').extract()
-            if not (name and name[0].strip() == 'gapA'):
-                continue
             if name and link:
                 # follow link
                 item['name'] = name[0]
@@ -34,7 +32,6 @@ class GeneListSpider(scrapy.Spider):
     def parse_gene(self, response, item=None):
         # get the synonyms
         synonym_text = response.xpath('//td[contains(text(), "Synonyms")]/following-sibling::td/text()').extract()
-        print(synonym_text)
         if synonym_text:
             item['synonyms'] = [x.strip() for x in synonym_text[0].split(',')]
         # get the b number
