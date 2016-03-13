@@ -36,7 +36,7 @@ class GeneListSpider(scrapy.Spider):
             item['synonyms'] = [x.strip() for x in synonym_text[0].split(',')]
         # get the b number
         for sibling in response.xpath('//td[contains(text(), "Accession IDs")]/following-sibling::td/text()'):
-            bnum = re.findall(r'b\d{3}', sibling.extract())
+            bnum = re.findall(r'b\d{4}', sibling.extract())
             if bnum:
                 item['b_number'] = bnum[0]
         # get the summary
