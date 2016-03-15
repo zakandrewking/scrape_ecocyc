@@ -53,5 +53,7 @@ class GeneListSpider(scrapy.Spider):
         yield scrapy.Request(url, callback=partial(self.parse_gene_summary, item=item))
 
     def parse_gene_summary(self, response, item=None):
-        item['summary_html'] = response.xpath('//div[@class="summaryText"]').extract()
+        summary_html = response.xpath('//div[@class="summaryText"]').extract()
+        if summary_html:
+            item['summary_html'] = summary_html[0]
         yield item

@@ -1,6 +1,7 @@
 #!/bin/bash
 if [[ $# -ne 1 ]]; then
-    echo "Usage: ./scrape.sh output_directory"
+    echo "Usage: ./run output_directory"
 else
+    rm $1/results.json
     scrapy crawl gene_list -o $1/results.json
 fi
