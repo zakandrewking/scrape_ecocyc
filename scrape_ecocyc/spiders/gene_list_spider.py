@@ -10,7 +10,8 @@ class GeneListSpider(scrapy.Spider):
     name = 'gene_list'
     allowed_domains = ['ecocyc.org']
     start_urls = [
-        'http://ecocyc.org/ECOLI/class-instances?object=Genes'
+        'http://ecocyc.org/ECOLI/class-instances?object=Genes',
+        'http://ecocyc.org/ECOLI/class-instances?object=Pseudo-Genes',
     ]
 
     def parse(self, response):
@@ -32,6 +33,8 @@ class GeneListSpider(scrapy.Spider):
 
     def parse_gene(self, response, item=None):
         # get the category and description
+        gene_box = response.xpath('//table[@class="titleBox"]//td[1]')
+        item['is_pseudogene'] = 'pseudogene' in gene_box.xpath('text()').extract()[0]
         product_box = response.xpath('//table[@class="titleBox"]//td[2]')
         product_type = product_box.xpath('text()').extract()
         if product_type:

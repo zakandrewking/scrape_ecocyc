@@ -10,3 +10,4 @@ class GeneItem(scrapy.Item):
     product_type = scrapy.Field()
     summary_html = scrapy.Field()
     synonyms = scrapy.Field()
+    is_pseudogene = scrapy.Field()
