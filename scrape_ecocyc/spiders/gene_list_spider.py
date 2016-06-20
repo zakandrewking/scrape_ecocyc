@@ -59,4 +59,12 @@ class GeneListSpider(scrapy.Spider):
         summary_html = response.xpath('//div[@class="summaryText"]').extract()
         if summary_html:
             item['summary_html'] = summary_html[0]
+        # get the ec number
+        url = response.urljoin('/gene-tab?id=%s&orgid=ECOLI&tab=RXNS' % item['ecocyc_id'])
+        yield scrapy.Request(url, callback=partial(self.parse_reaction, item=item))
+
+    def parse_reaction(self, response, item=None):
+        ec_html = response.xpath('//a[@class="EC-NUMBER"]')
+        if ec_html:
+            item['ec_number'] = ec_html.xpath('text()').extract()[0].strip()
         yield item
