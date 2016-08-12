@@ -67,4 +67,7 @@ class GeneListSpider(scrapy.Spider):
         ec_html = response.xpath('//a[@class="EC-NUMBER"]')
         if ec_html:
             item['ec_number'] = ec_html.xpath('text()').extract()[0].strip()
+        eq_html = response.xpath('//td[@class="reactionEquation"]')
+        if eq_html:
+            item['reaction_equation'] = eq_html.xpath('string()').extract()[0]
         yield item

@@ -12,3 +12,4 @@ class GeneItem(scrapy.Item):
     synonyms = scrapy.Field()
     is_pseudogene = scrapy.Field()
     ec_number = scrapy.Field()
+    reaction_equation = scrapy.Field()
