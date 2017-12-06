@@ -11,5 +11,7 @@ class GeneItem(scrapy.Item):
     summary_html = scrapy.Field()
     synonyms = scrapy.Field()
     is_pseudogene = scrapy.Field()
+    is_phantom_gene = scrapy.Field()
+    is_insertion = scrapy.Field()
     ec_number = scrapy.Field()
     reaction_equation = scrapy.Field()
