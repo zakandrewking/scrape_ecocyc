@@ -4,19 +4,24 @@ from scrape_ecocyc.items import GeneItem
 
 import scrapy
 from functools import partial
+import itertools as it
 import re
 
 class GeneListSpider(scrapy.Spider):
     name = 'gene_list'
     allowed_domains = ['ecocyc.org']
     start_urls = [
-        # 'http://ecocyc.org/ECOLI/class-instances?object=Genes',
-        # 'http://ecocyc.org/ECOLI/class-instances?object=Pseudo-Genes',
-        'http://ecocyc.org/ECOLI/class-instances?object=Phantom-Genes',
+        'https://ecocyc.org/ECOLI/class-instances?object=Genes',
+        'https://ecocyc.org/ECOLI/class-instances?object=Pseudo-Genes',
+        'https://ecocyc.org/ECOLI/class-instances?object=Phantom-Genes',
     ]
 
     def parse(self, response):
-        for sel in response.xpath('//table[@class="sortableSAQPoutputTable"]//td'):
+        # Get gene list, skipping header
+        gene_list = response.xpath('//table[@class="sortableSAQPoutputTable"]//td')[1:]
+        # Print expected gene count for each starting point
+        self.logger.info(f'Expecting {len(gene_list)} genes')
+        for sel in gene_list:
             item = GeneItem()
             name = sel.xpath('a/text()').extract()
             link = sel.xpath('a/@href').extract()
@@ -26,11 +31,16 @@ class GeneListSpider(scrapy.Spider):
                 link_val = link[0].strip()
                 item['ecocyc_id'] = re.match(r'.*&id=([^&]+).*', link_val).group(1)
                 url = response.urljoin(link_val)
-                yield scrapy.Request(url, callback=partial(self.parse_gene, item=item))
+                yield scrapy.Request(url,
+                                     callback=partial(self.parse_gene, item=item),
+                                     errback=partial(self.no_result, item=item))
             elif name:
                 # return name for cases with no link (for debugging)
                 item['name'] = name[0]
                 yield item
+
+    def no_result(self, _, item=None):
+        self.logger.info(f'No result for {item["name"]}')
 
     def parse_gene(self, response, item=None):
         # get the category and description
@@ -55,7 +65,9 @@ class GeneListSpider(scrapy.Spider):
                 item['b_number'] = bnum[0]
         # get the summary
         url = response.urljoin('/gene-tab?id=%s&orgid=ECOLI&tab=SUMMARY' % item['ecocyc_id'])
-        yield scrapy.Request(url, callback=partial(self.parse_gene_summary, item=item))
+        yield scrapy.Request(url,
+                             callback=partial(self.parse_gene_summary, item=item),
+                             errback=lambda _: item)
 
     def parse_gene_summary(self, response, item=None):
         summary_html = response.xpath('//div[@class="summaryText"]').extract()
@@ -63,7 +75,9 @@ class GeneListSpider(scrapy.Spider):
             item['summary_html'] = summary_html[0]
         # get the ec number
         url = response.urljoin('/gene-tab?id=%s&orgid=ECOLI&tab=RXNS' % item['ecocyc_id'])
-        yield scrapy.Request(url, callback=partial(self.parse_reaction, item=item))
+        yield scrapy.Request(url,
+                             callback=partial(self.parse_reaction, item=item),
+                             errback=lambda _: item)
 
     def parse_reaction(self, response, item=None):
         ec_html = response.xpath('//a[@class="EC-NUMBER"]')
