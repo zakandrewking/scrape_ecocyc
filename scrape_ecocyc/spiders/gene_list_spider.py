@@ -24,10 +24,13 @@ class GeneListSpider(scrapy.Spider):
         for sel in gene_list:
             item = GeneItem()
             name = sel.xpath('a/text()').extract()
+
             link = sel.xpath('a/@href').extract()
+            summary_html = response.xpath('//div[@class="summaryText"]').extract()
             if name and link:
                 # follow link
                 item['name'] = name[0].strip()
+
                 link_val = link[0].strip()
                 item['ecocyc_id'] = re.match(r'.*&id=([^&]+).*', link_val).group(1)
                 url = response.urljoin(link_val)
@@ -51,6 +54,7 @@ class GeneListSpider(scrapy.Spider):
         product_type = product_box.xpath('text()').extract()
         if product_type:
             item['product_type'] = product_type[0].strip()
+
         description_text = product_box.xpath('font[@class="header"]/text()').extract()
         if description_text:
             item['description'] = description_text[0].strip()
@@ -58,11 +62,16 @@ class GeneListSpider(scrapy.Spider):
         synonym_text = response.xpath('//td[contains(text(), "Synonyms")]/following-sibling::td/text()').extract()
         if synonym_text:
             item['synonyms'] = [x.strip() for x in synonym_text[0].split(',')]
+
         # get the b number
         for sibling in response.xpath('//td[contains(text(), "Accession IDs")]/following-sibling::td/text()'):
             bnum = re.findall(r'b\d{4}', sibling.extract())
             if bnum:
                 item['b_number'] = bnum[0]
+
+        # get the evidence box
+        item['evidence_html'] =  response.xpath('//td[contains(text(), "Evidence")]/following-sibling::td//tr/td[1]').extract()
+
         # get the summary
         url = response.urljoin('/gene-tab?id=%s&orgid=ECOLI&tab=SUMMARY' % item['ecocyc_id'])
         yield scrapy.Request(url,

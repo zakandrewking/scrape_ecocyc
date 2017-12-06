@@ -15,3 +15,4 @@ class GeneItem(scrapy.Item):
     is_insertion = scrapy.Field()
     ec_number = scrapy.Field()
     reaction_equation = scrapy.Field()
+    evidence_html = scrapy.Field()
