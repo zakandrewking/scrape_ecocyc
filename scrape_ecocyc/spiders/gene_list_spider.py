@@ -70,7 +70,7 @@ class GeneListSpider(scrapy.Spider):
                 item['b_number'] = bnum[0]
 
         # get the evidence box
-        item['evidence_html'] =  response.xpath('//td[contains(text(), "Evidence")]/following-sibling::td//tr/td[1]').extract()
+        item['evidence_html'] =  response.xpath('//td[contains(text(), "Evidence")]/following-sibling::td//tr').extract()
 
         # get the summary
         url = response.urljoin('/gene-tab?id=%s&orgid=ECOLI&tab=SUMMARY' % item['ecocyc_id'])
