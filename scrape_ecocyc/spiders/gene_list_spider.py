@@ -24,11 +24,10 @@ class GeneListSpider(scrapy.Spider):
         for sel in gene_list:
             item = GeneItem()
             name = sel.xpath('a/text()').extract()
-
             link = sel.xpath('a/@href').extract()
-            summary_html = response.xpath('//div[@class="summaryText"]').extract()
+
             if name and link:
-                # follow link
+                # Follow link
                 item['name'] = name[0].strip()
 
                 link_val = link[0].strip()
@@ -69,10 +68,12 @@ class GeneListSpider(scrapy.Spider):
             if bnum:
                 item['b_number'] = bnum[0]
 
-        # get the evidence box
-        item['evidence_html'] =  response.xpath('//td[contains(text(), "Evidence")]/following-sibling::td//tr').extract()
+        # Get the evidence box
+        evidence_html = response.xpath('//td[contains(text(), "Evidence")]/following-sibling::td//tr').extract()
+        if evidence_html:
+            item['evidence_html'] = evidence_html[0]
 
-        # get the summary
+        # Get the summary
         url = response.urljoin('/gene-tab?id=%s&orgid=ECOLI&tab=SUMMARY' % item['ecocyc_id'])
         yield scrapy.Request(url,
                              callback=partial(self.parse_gene_summary, item=item),
@@ -88,7 +89,7 @@ class GeneListSpider(scrapy.Spider):
         if component_html:
             item['component_html'] = component_html[0]
 
-        # Get the ec number
+        # Get the EC number
         url = response.urljoin('/gene-tab?id=%s&orgid=ECOLI&tab=RXNS' % item['ecocyc_id'])
         yield scrapy.Request(url,
                              callback=partial(self.parse_reaction, item=item),
@@ -98,7 +99,9 @@ class GeneListSpider(scrapy.Spider):
         ec_html = response.xpath('//a[@class="EC-NUMBER"]')
         if ec_html:
             item['ec_number'] = ec_html.xpath('text()').extract()[0].strip()
+
         eq_html = response.xpath('//td[@class="reactionEquation"]')
         if eq_html:
             item['reaction_equation'] = eq_html.xpath('string()').extract()[0]
+
         yield item
